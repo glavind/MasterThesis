@@ -2,7 +2,6 @@
 #  Jonsson Step-2   #
 #####################
 library(forecast) #ARIMA
-library(xts)
 
 #Load step 1 forecasts
 rawdata <- read.csv(file='../forecasts/jonsson-standard-forecasts-step1.csv')

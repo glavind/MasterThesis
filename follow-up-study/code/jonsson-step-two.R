@@ -6,6 +6,7 @@ library(forecast) #ARIMA
 #Load step 1 forecasts
 rawdata <- read.csv(file='../forecasts/jonsson-standard-forecasts-step1.csv')
 timestamp <- strptime(rawdata[,1], format="%Y-%m-%d %H:%M")
+test.length <- nrow(rawdata)
 # Create full data set
 d.jonsson <- xts(rawdata[,-1], timestamp, frequency=24)
 d.jonsson <- cbind(d.jonsson, d.jonsson[,1]-d.jonsson[,2])
@@ -31,8 +32,8 @@ container.forecast <- matrix(NA, nrow = test.length)
 for (i in 0:(test.length/24 - 1)){
   loopDate <- as.Date(test.start) + i
   # Select estimation data. Starts from max(train.start, estimation data - usr.estimationDays) and ends at the previous day
-  d.est   <- window(dat, start = max(train.start, as.POSIXct(as.Date(loopDate) - usr.estimationDays)),
-                    end = as.POSIXct(loopDate) - as.difftime(1, unit="hours"))
+  d.est   <- window(dat, start = max(test.start, as.POSIXct(as.Date(loopDate))),
+                    end = min(test.end, as.POSIXct(loopDate + usr.estimationDays) - as.difftime(1, unit="hours")))
   # Split on hour
   d.est.split <- split(d.est, as.numeric(format(time(d.est), "%H")))
 
@@ -48,7 +49,7 @@ for (i in 0:(test.length/24 - 1)){
       model.fit[[j]] <- Arima(as.matrix(d.est.split[[j]]), model=model.fit[[j]])
     }
     #Forecast
-    model.fcast <- forecast.Arima(model.fit[[j]], h=1)$mean # Forecast    
+    model.fcast <- forecast(model.fit[[j]], h=1)$mean # Forecast    
     # save forecast
     container.forecast[(24*i+j),] <- model.fcast
   }
